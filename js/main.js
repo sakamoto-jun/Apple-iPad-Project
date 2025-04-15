@@ -42,12 +42,15 @@ const searchInputEl = searchWrapEl.querySelector('input');
 const searchDelayEls = [...searchWrapEl.querySelectorAll('li')];
 
 searchStarterEl.addEventListener('click', showSearch);
-searchCloserEl.addEventListener('click', hideSearch);
+searchCloserEl.addEventListener('click', function (e) {
+  e.stopPropagation();
+  hideSearch();
+});
 searchShadowEl.addEventListener('click', hideSearch);
 
 function showSearch() {
   headerEl.classList.add('searching');
-  document.documentElement.classList.add('fixed');
+  stopScroll();
   [...headerMenuEls].reverse().forEach(function (el, index) {
     el.style.transitionDelay = index * 0.4 / headerMenuEls.length + 's'
   });
@@ -60,7 +63,7 @@ function showSearch() {
 }
 function hideSearch() {
   headerEl.classList.remove('searching');
-  document.documentElement.classList.remove('fixed');
+  playScroll();
   headerMenuEls.forEach(function (el, index) {
     el.style.transitionDelay = index * 0.4 / headerMenuEls.length + 's'
   });
@@ -69,6 +72,52 @@ function hideSearch() {
   });
   searchInputEl.value = '';
 }
+
+// 헤더 메뉴 토글 (Mobile)
+const menuStarterEl = headerEl.querySelector('.menu-starter');
+
+menuStarterEl.addEventListener('click', function () {
+  let isOpen = headerEl.classList.contains('menu-on');
+
+  if (isOpen) {
+    headerEl.classList.remove('menu-on');
+    searchInputEl.value = '';
+    playScroll();
+  } else {
+    headerEl.classList.add('menu-on');
+    stopScroll();
+  }
+});
+
+function stopScroll() {
+  document.documentElement.classList.add('fixed');
+}
+function playScroll() {
+  document.documentElement.classList.remove('fixed');
+}
+
+// 헤더 검색 (Mobile)
+const searchTextFieldEl = searchWrapEl.querySelector('.textfield');
+const searchCancelerEl = searchWrapEl.querySelector('.search-canceler');
+
+searchTextFieldEl.addEventListener('click', function () {
+  headerEl.classList.add('searching--mobile');
+  searchInputEl.focus();
+});
+searchCancelerEl.addEventListener('click', function () {
+  headerEl.classList.remove('searching--mobile');
+});
+
+// PC, 태블릿 <-> 모바일 반응 충돌 처리
+window.addEventListener('resize', function () {
+  if (window.innerWidth <= 740) {
+    headerEl.classList.remove('searching');
+    playScroll();
+  } else {
+    headerEl.classList.remove('searching--mobile', 'menu-on');
+    playScroll();
+  }
+});
 
 // Info 요소 Intersectiong Observing
 const io = new IntersectionObserver(function (entries) {
@@ -85,7 +134,7 @@ infoEls.forEach(function (el) {
   io.observe(el);
 });
 
-// Video Play, Pause
+// 비디오 Play, Pause
 const video = document.querySelector('.stage .video-wrap video');
 const playBtn = document.querySelector('.stage .controller--play');
 const pauseBtn = document.querySelector('.stage .controller--pause');
@@ -130,7 +179,7 @@ ipads.forEach(function (ipad) {
   itemsEl.append(itemEl);
 });
 
-// Footer Navigations
+// 푸터 네비게이션
 const navigationsEl = document.querySelector('footer .navigations');
 
 navigations.forEach(function (navigation) {
@@ -158,11 +207,11 @@ navigations.forEach(function (navigation) {
   navigationsEl.append(mapEl);
 });
 
-// Get Year
+// 년도 가져오기
 const thisYearEl = document.querySelector('span.this-year');
 thisYearEl.textContent = new Date().getFullYear();
 
-// Get HTML Language
+// HTML 문서 언어 가져오기
 const localeEl = document.querySelector('.locale');
 const htmlLang = document.documentElement.lang;
 
