@@ -1,35 +1,20 @@
 import ipads from '../data/ipads.js';
 import navigations from '../data/navigations.js';
 
+// PLAN: 추후 함수형태로 리팩토링
+
 // 장바구니
 const basketStarterEl = document.querySelector('header .basket-starter');
 const basketEl = basketStarterEl.querySelector('.basket');
 
 basketStarterEl.addEventListener('click', function (e) {
   e.stopPropagation();
-  let isShow = basketEl.classList.contains('show');
-
-  if (isShow) {
-    hideBasket();
-  } else {
-    showBasket();
-  }
+  basketEl.classList.toggle('show');
 });
 
 basketEl.addEventListener('click', function (e) {
   e.stopPropagation();
 });
-
-window.addEventListener('click', function () {
-  hideBasket();
-});
-
-function showBasket() {
-  basketEl.classList.add('show');
-}
-function hideBasket() {
-  basketEl.classList.remove('show');
-}
 
 // 검색
 const headerEl = document.querySelector('header');
@@ -41,11 +26,12 @@ const searchShadowEl = searchWrapEl.querySelector('.shadow');
 const searchInputEl = searchWrapEl.querySelector('input');
 const searchDelayEls = [...searchWrapEl.querySelectorAll('li')];
 
-searchStarterEl.addEventListener('click', showSearch);
-searchCloserEl.addEventListener('click', function (e) {
+searchWrapEl.addEventListener('click', function (e) {
   e.stopPropagation();
-  hideSearch();
 });
+
+searchStarterEl.addEventListener('click', showSearch);
+searchCloserEl.addEventListener('click', hideSearch);
 searchShadowEl.addEventListener('click', hideSearch);
 
 function showSearch() {
@@ -76,7 +62,8 @@ function hideSearch() {
 // 헤더 메뉴 토글 (Mobile)
 const menuStarterEl = headerEl.querySelector('.menu-starter');
 
-menuStarterEl.addEventListener('click', function () {
+menuStarterEl.addEventListener('click', function (e) {
+  e.stopPropagation();
   let isOpen = headerEl.classList.contains('menu-on');
 
   if (isOpen) {
@@ -85,16 +72,10 @@ menuStarterEl.addEventListener('click', function () {
     playScroll();
   } else {
     headerEl.classList.add('menu-on');
+    basketEl.classList.remove('show');
     stopScroll();
   }
 });
-
-function stopScroll() {
-  document.documentElement.classList.add('fixed');
-}
-function playScroll() {
-  document.documentElement.classList.remove('fixed');
-}
 
 // 헤더 검색 (Mobile)
 const searchTextFieldEl = searchWrapEl.querySelector('.textfield');
@@ -108,7 +89,32 @@ searchCancelerEl.addEventListener('click', function () {
   headerEl.classList.remove('searching--mobile');
 });
 
-// PC, 태블릿 <-> 모바일 반응 충돌 처리
+// 네비 메뉴 토글 (Mobile)
+const navEl = document.querySelector('nav');
+const navMenuTogglerEl = navEl.querySelector('.menu-toggler');
+const navMenuShadowEl = navEl.querySelector('.shadow');
+
+navEl.addEventListener('click', function (e) {
+  e.stopPropagation();
+});
+navMenuTogglerEl.addEventListener('click', function () {
+  navEl.classList.toggle('menu-on');
+});
+navMenuShadowEl.addEventListener('click', function () {
+  navEl.classList.remove('menu-on');
+});
+
+// Window 이벤트 처리 - 클릭
+window.addEventListener('click', function () {
+  console.log('윈도우 클릭!');
+  if (basketEl.classList.contains('show')) {
+    basketEl.classList.remove('show');
+  }
+  if (navEl.classList.contains('menu-on')) {
+    navEl.classList.remove('menu-on');
+  }
+});
+// Window 이벤트 처리 - PC, 태블릿 <-> 모바일 반응 충돌 처리
 window.addEventListener('resize', function () {
   if (window.innerWidth <= 740) {
     headerEl.classList.remove('searching');
@@ -118,6 +124,14 @@ window.addEventListener('resize', function () {
     playScroll();
   }
 });
+
+// 스크롤 제어 함수
+function stopScroll() {
+  document.documentElement.classList.add('fixed');
+}
+function playScroll() {
+  document.documentElement.classList.remove('fixed');
+}
 
 // Info 요소 Intersectiong Observing
 const io = new IntersectionObserver(function (entries) {
@@ -139,12 +153,14 @@ const video = document.querySelector('.stage .video-wrap video');
 const playBtn = document.querySelector('.stage .controller--play');
 const pauseBtn = document.querySelector('.stage .controller--pause');
 
-playBtn.addEventListener('click', function () {
+playBtn.addEventListener('click', function (e) {
+  e.stopPropagation();
   video.play();
   playBtn.classList.add('hide');
   pauseBtn.classList.remove('hide');
 });
-pauseBtn.addEventListener('click', function () {
+pauseBtn.addEventListener('click', function (e) {
+  e.stopPropagation();
   video.pause();
   pauseBtn.classList.add('hide');
   playBtn.classList.remove('hide');
@@ -180,7 +196,7 @@ ipads.forEach(function (ipad) {
 });
 
 // 푸터 네비게이션
-const navigationsEl = document.querySelector('footer .navigations');
+const footerNavigationsEl = document.querySelector('footer .navigations');
 
 navigations.forEach(function (navigation) {
   const mapEl = document.createElement('div');
@@ -198,13 +214,31 @@ navigations.forEach(function (navigation) {
   mapEl.innerHTML = /* html */ `
     <h3>
       <span class="text">${navigation.title}</span>
+      <span class="icon">+</span>
     </h3>
     <ul>
       ${mapList}
     </ul>
   `
 
-  navigationsEl.append(mapEl);
+  footerNavigationsEl.append(mapEl);
+});
+
+const mapEls = footerNavigationsEl.querySelectorAll('.map');
+
+mapEls.forEach(function (el) {
+  const mapTitleEl = el.querySelector('h3');
+
+  const toggleHandler = function (e) {
+    e.stopPropagation();
+    el.classList.toggle('active');
+  };
+
+  if (window.innerWidth <= 740) {
+    mapTitleEl.addEventListener('click', toggleHandler);
+  } else {
+    mapTitleEl.removeEventListener('click', toggleHandler);
+  }
 });
 
 // 년도 가져오기
