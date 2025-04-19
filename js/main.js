@@ -106,7 +106,7 @@ navMenuShadowEl.addEventListener('click', function () {
 
 // Window 이벤트 처리 - 클릭
 window.addEventListener('click', function () {
-  console.log('윈도우 클릭!');
+  // console.log('윈도우 클릭!');
   if (basketEl.classList.contains('show')) {
     basketEl.classList.remove('show');
   }
